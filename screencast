@@ -1,0 +1,46 @@
+#!/bin/bash
+# screencast using ffmpeg and gnome-terminal
+# use default setting and output an AVI filecast
+
+DIR=~/perso/screencast
+DATE=$(date +%F_%A_at_%H%M)
+FILENAME=${1-$DATE}
+SCREENCAST_CMD="gnome-terminal -x ffmpeg -f x11grab -r 25 -s %s -i %s -vcodec libx264 %s"
+
+# see alsa device with arecord -L
+# FIXME marche po :(
+MICRO_CMD="gnome-terminal -x ffmpeg -f alsa -ac 2 -i pulse -acodec pcm_s16le -benchmark %s"
+
+# functions ###############################################
+
+function usage() {
+cat <<EOT
+Usage: $(basename $0) [ FILENAME ]
+Save multiple-screencast and audio to $DIR
+
+EOT
+}
+
+function _geometry_of_display() {
+    echo $(xwininfo -root -display $1 | grep 'geometry' | awk '{print $2}'| awk -F+ '{print $1}')
+}
+
+## main ###################################################
+
+## screencast 0
+eval $(printf "$SCREENCAST_CMD" $(_geometry_of_display :0.0) :0.0 "$DIR/${FILENAME}_screen0.mkv" )
+echo $(printf "$SCREENCAST_CMD" $(_geometry_of_display :0.0) :0.0 "$DIR/${FILENAME}_screen0.mkv" )
+
+## screencast 1
+#eval $(printf "$SCREENCAST_CMD" $(_geometry_of_display :0.1) :0.1 "$DIR/${FILENAME}_screen1.mkv" )
+#echo $(printf "$SCREENCAST_CMD" $(_geometry_of_display :0.1) :0.1 "$DIR/${FILENAME}_screen1.mkv" )
+
+## micro
+#eval $(printf "$MICRO_CMD" "$DIR/${FILENAME}_micro.wav" )
+#echo $(printf "$MICRO_CMD" "$DIR/${FILENAME}_micro.wav" )
+
+echo
+echo "Videos save to $DIR"
+
+# pcht 2012
+# vim:set ts=4 sw=4 sta ai spelllang=en:
