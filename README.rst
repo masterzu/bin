@@ -27,29 +27,29 @@ All Useful script to share
 System Tools
 ============
 
-* inotify-rst.sh
+* ``inotify-rst.sh``
 
 Use inotify to auto-convert rst to html files
 
-* print_image*
+* ``print_image*``
 
 Print image with options
 
-* x
+* ``x``
 
 Lazy : ``chmod +x $@``
 
 Development Tools
 ==================
 
-* tap-functions
+* ``tap-functions``
 
 TAP_ functions to bash scripts.
 
 Multimedia Tools
 ================
 
-* screencast
+* ``screencast``
 
 Grabbing X11 screens using ``ffmpeg``.
 
