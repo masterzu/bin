@@ -1,0 +1,7 @@
+if test $# -eq 0
+then
+    print_image
+    exit
+fi
+
+print_image $@ -o landscape

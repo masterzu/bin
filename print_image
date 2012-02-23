@@ -1,0 +1,42 @@
+#!/bin/bash
+
+function usage {
+    cat <<EOT
+Usage: $(basename $0) <printer> [Opts] <image file>*
+   
+print a image in landscape orientation scaled to fit on the page
+
+Opts:
+Orientation
+    -o landscape - landscape orientation (90 degrees)
+    -o orientation-requested=3 - portrait orientation (no rotation)
+    -o orientation-requested=4 - landscape orientation (90 degrees)
+    -o orientation-requested=5 - reverse landscape (270 degrees)
+    -o orientation-requested=6 - reverse portrait (180 degrees)
+
+Image
+    -o position=name - position of the image on the page
+        name = center (default), top, left, right, top-left, top-right, 
+        bottom, bottom-left, bottom-right
+    -o scaling=percent - value is a number from 1 to 800 specifying 
+        the size in relation to the page (not the image.)
+    -o fit-to-page - document should be scaled to fit on the page
+
+EOT
+}
+
+if test $# -lt  2
+then
+    echo "Error: must give a printer name and a image file"
+    usage
+    exit 1
+fi
+
+printer=$1
+shift
+
+OPTIONS="-o sides=one-sided -o media=a4 -o fit-to-page"
+echo lp -d $printer $OPTIONS $@
+lp -d $printer $OPTIONS $@
+
+

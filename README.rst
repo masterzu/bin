@@ -31,6 +31,10 @@ System Tools
 
 Use inotify to auto-convert rst to html files
 
+* print_image*
+
+Print image with options
+
 * x
 
 Lazy : ``chmod +x $@``
