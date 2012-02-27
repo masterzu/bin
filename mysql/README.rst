@@ -18,9 +18,10 @@ Process:
 
 1. run ``split-sql.sh`` then the <file>.sql to split it in one per table file
 
-2. a. run ``recode-sql-insert.sh <file>_SPLIT_xxx`` to scan the INSERT fields containing **Ã** character
+2. 
+  a. run ``recode-sql-insert.sh <file>_SPLIT_xxx`` to scan the INSERT fields containing **Ã** character
 
-2. b. run ``recode-sql-insert.sh <file>_SPLIT_xxx <f1> <f2>`` to recode as explain in *2.a.*
+  b. run ``recode-sql-insert.sh <file>_SPLIT_xxx <f1> <f2>`` to recode as explain in *2.a.*
 
 3. or run directly ``recode-sql-insert.sh -a <file>_SPLIT_xxx`` to scan and recode automaticly
 
