@@ -4,10 +4,13 @@
  
 # Patrick CAO HUU THIEN <patrick.cao_huu_thien@upmc.fr>
 # 
-readonly VERSION=1
+readonly VERSION=2
 # History
+# * Thu Mar  1 16:14:46 CET 2012
+# - BUGFIXs
 # * 24 Feb 2012 - 1
 # - initial version
+
  
 
 function usage() {
@@ -92,6 +95,22 @@ function split() {
     do_debug "[split] = $line2"
     echo $line2
 }
+
+# join a line with a string
+function join() {
+    local sep="$1"
+    shift
+    local resu=''
+    for i in $@
+    do
+        resu="${resu}${sep}$i"
+    done
+    
+    resu=${resu:${#sep}}
+    do_debug "join($sep, $@) = $resu"
+    echo $resu
+}
+
 
 # print the beginnig of a split
 function begin_split() {
@@ -271,17 +290,18 @@ then
                 then
                     file_changed=1
                     middle_changed=1
+                    # retro-encode utf8>>latin1
                     item2=$(echo "$item" | iconv -f UTF8 -t LATIN1)
                     do_log "recode \`$item' >> \`$item2'"
-                    middle2="$middle2 $item2"
+                    middle2="${middle2} ${item2}"
                 else
-                    middle2="$middle2 $item"
+                    middle2="${middle2} ${item}"
                 fi
                 (( i++ ))
             done
             if test "$middle_changed" == 1
             then
-                line="${begin}${middle2}${end}" 
+                line="${begin}$(join ',' ${middle2})${end}" 
                 #echo "$line" >> $tempfile
                 
             else
