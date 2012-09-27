@@ -1,0 +1,139 @@
+#!/bin/bash
+# 
+# postraitement apres generation par XARALX
+# > page A4 landscape / double page
+# > export png with 150 dpi
+#
+# operations de ce scripts
+# 1/ split en 2 verticalement
+# 2/ transformation en PDF
+# 3/ re-unification en 1 PDF unique
+ 
+# Patrick CAO HUU THIEN <patrick.cao_huu_thien@upmc.fr>
+# 
+VERSION=1
+# History
+# * 10 May 2010 - 0.1
+# - initial version
+ 
+
+function usage() {
+cat <<EOT
+$(basename $0) <file>
+EOT
+}
+
+## options
+OPTIND=1
+while getopts hnvVdq opt ; do
+   case "$opt" in
+        h) usage; exit;;
+        v) VERBOSE=1;;
+        d) DEBUG=1;;
+        q) QUIET=1;;
+        n) TESTING=1;;
+        V) echo "$(basename $0) - $VERSION"; exit;;
+   esac
+done
+shift $(($OPTIND - 1))
+ 
+function do_debug () { [ $DEBUG ] && echo "[debug] $@" >&2 || true; }
+#do_debug bla bla in debug
+ 
+function do_err () { cal=`caller 0`;echo "Error: (line: $cal) $@" >&2; exit 1;  }
+#do_err This is an error test
+ 
+function do_warn () { echo "Warning: $@";  }
+#do_warn This is an error test
+ 
+function do_print () { [ -z $QUIET ] && echo "$@" || true; }
+#do_print this is a test
+ 
+function do_printf () { [ -z $QUIET ] && printf "$@" || true; }
+#do_printf "%10s_%20s_%-10s_%s\n" this is a test
+
+# MAIN ####################################################
+
+set -e 
+
+if test $# != 1
+then
+    do_warn Missing argument
+    usage
+    exit
+fi
+
+SRC=$1
+
+SRC_TYPE=`identify -ping $SRC|gawk '{print $2}'`
+SRC_GEO=`identify -ping $SRC|gawk '{print $3}'`
+SRC_WIDTH=`echo $SRC_GEO|gawk -Fx '{print $1}'`
+SRC_HEIGHT=`echo $SRC_GEO|gawk -Fx '{print $2}'`
+
+do_debug "SRC_TYPE: $SRC_TYPE"
+do_debug "SRC_GEO: $SRC_GEO"
+do_debug "SRC_WIDTH: $SRC_WIDTH"
+do_debug "SRC_HEIGHT: $SRC_HEIGHT"
+
+DST_WIDTH=$(( $SRC_WIDTH / 2 ))
+DST_EXT=${SRC##*.}
+DST_BASE=${SRC%.*}
+TEMP_1=${DST_BASE}-1.$DST_EXT
+TEMP_2=${DST_BASE}-2.$DST_EXT
+PDF_1=${DST_BASE}-1.pdf
+PDF_2=${DST_BASE}-2.pdf
+PDF=${DST_BASE}.pdf
+
+do_debug "DST_WIDTH: $DST_WIDTH" 
+do_debug "DST_EXT: $DST_EXT" 
+do_debug "DST_BASE: $DST_BASE"
+do_debug "TEMP_1: $TEMP_1"
+do_debug "TEMP_2: $TEMP_2"
+do_debug "PDF_1: $PDF_1"
+do_debug "PDF_2: $PDF_2"
+do_debug "PDF: $PDF"
+
+test -f $SRC || { echo "file '$SRC' don't exists"; exit 1; }
+
+do_printf "Phase 1 : Spliting image '$SRC' : " 
+if test ! -f $TEMP_1 -a ! -f $TEMP_2
+then
+    convert $SRC -crop "${DST_WIDTH}x${SRC_HEIGHT}+0+0" +repage $TEMP_1
+    do_printf "$TEMP_1 ... "
+    convert $SRC -crop "${DST_WIDTH}x${SRC_HEIGHT}+${DST_WIDTH}+0" +repage $TEMP_2
+    do_printf "$TEMP_2\n"
+
+    #do_warn "Phase 2 : convert to PDF with 'convert' do not work well, use an image viewer and print to PDF printer"
+    #exit 
+else
+    do_print "already done"
+fi
+
+test ! -f $TEMP_1 -a ! -f $TEMP_2 && { echo "Erreur de spliting"; exit 1; }
+
+do_printf "Phase 2 : Converting to PDF : "
+if test ! -f $PDF_1 -a ! -f $PDF_2
+then
+    convert $TEMP_1 -page a4 $PDF_1
+    do_printf "$PDF_1 ... "
+    convert $TEMP_2 -page a4 $PDF_2
+    do_printf "$PDF_2\n"
+else
+    do_print "already done"
+fi
+
+test ! -f $PDF_1 -a ! -f $PDF_2 && { echo "Erreur de convertion "; exit 1; }
+
+do_printf "Phase 3 : Merging PDF : "
+if test ! -f $PDF
+then
+    gs -q -sPAPERSIZE=a4 -dNOPAUSE -dBATCH -sDEVICE=pdfwrite -sOutputFile=$PDF $PDF_1 $PDF_2
+    do_print "$PDF"
+else
+    do_print "ABORT :  '$PDF' already exists"
+    exit
+fi
+
+test -f "$PDF" || { echo "Erreur de Merging : $PDF"; exit 1; }
+
+rm -f $TEMP_1 $TEMP_2 $PDF_1 $PDF_2

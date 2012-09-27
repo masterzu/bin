@@ -1,0 +1,59 @@
+#! /bin/bash
+
+# conversion video DV .avi (dv,pcm) en DVD .mpeg2 (mpeg,pcm/mp2)
+#
+# voir http://www.transcoding.org/cgi-bin/transcode?DVtoDVD
+
+IN=$1
+OUT=$IN-mpeg2enc
+
+if test ! -f $IN
+then
+	echo "fichier '$IN' n 'existe pas"
+	exit 1
+fi
+
+# - options for DVD ---------------------------------------
+# * Audio format
+# -N 0x1	PCM (bitrate = 1536 kbps ou 768 kbps en mono)
+# -N 0x50	MPEG layer2 (MP2) (256 kbps suffit largement)
+# -N 0x2000	AC3
+AUDIOFORMAT='-N 0x50'
+#AUDIOFORMAT=
+AUDIOBR='-b 256'
+#AUDIOBR=
+
+# * Bitrate 
+#	maximum-bitrate (audio+video) < 10.08 Mbps (10080 kbps) AND 
+#	video < 9800 kbps
+#	maximum-bitrate (bits/second) = 
+#		4,500,000,000 (bytes) * 8 (bits/byte) / video-length (seconds)
+#VIDEOBR='-w 9000'
+#VIDEOSIZE='-Z 720x576'
+
+# interlacing
+INTERLACING='--encode_fields b --export_asr 2'
+
+# options generale
+#OPTS='--export_prof dvd-pal -D 0 --pre_clip 0'
+OPTS='--export_prof dvd-pal --dv_yuy2_mode --pre_clip 0'
+
+
+# * Video export
+# mpeg2enc ? 
+MPEG2ENC="-x dv,dv -y mpeg2enc,mp2enc"
+F="8,-c -q 2 -4 1 -2 1"
+#F=8
+
+
+echo ------------------------------------------------------
+echo transcode -i $IN $MPEG2ENC -F "$F" $OPTS $INTERLACING $VIDEOBR $VIDEOSIZE $AUDIOBR $AUDIOFORMAT -o $OUT
+echo ------------------------------------------------------
+
+transcode -i $IN $MPEG2ENC  -F "$F" $OPTS $INTERLACING $VIDEOBR $VIDEOSIZE $AUDIOBR $AUDIOFORMAT -o $OUT
+
+echo ------------------------------------------------------
+
+mplex -f 8 -V -o $OUT.mpeg $OUT.m2v $OUT.mpa
+
+echo ------------------------------------------------------

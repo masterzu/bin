@@ -1,0 +1,33 @@
+# subsgit projects
+game-scripts
+gnoo*
+
+
+# tclkit
+tclkit*
+sdx*
+ased*
+dgHelpBrowser*
+
+# backup
+backup-home*
+
+#recover
+recoverjpeg*
+
+# confidentiel tools
+xlab
+
+#games and tools
+et-omnibot
+minecraft
+allpics
+flashplayer*
+x
+
+
+# general 
+*.log
+
+
+

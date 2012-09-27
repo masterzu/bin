@@ -1,0 +1,29 @@
+#!/bin/bash
+# alarm - set Xdialog at a time
+
+usage() {
+    cat <<EOT
+Usage:$(basename $0) <time> [ <text> ]
+
+(c) pcht 2011
+EOT
+}
+
+test $# -lt 1 && { usage; exit; }
+
+
+HEURE=$1
+shift
+TXT="$@"
+test -z $TXT && TXT='Alarm'
+
+# add now if it's a relative time 
+test ${HEURE:0:1} == '+' && HEURE="now $HEURE" 
+
+DIR=$HOME/bin
+BIN="Xdialog --fixed-font --msgbox "
+BIN2="0 0"
+SOUND=sound_oldcar_honk.sh
+
+echo "at $HEURE <<< $SOUND ; DISPLAY=$DISPLAY $BIN $TXT $BIN2"
+at $HEURE <<< "$SOUND ; DISPLAY=$DISPLAY $BIN '$TXT' $BIN2"

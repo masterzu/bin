@@ -1,0 +1,27 @@
+#!/bin/sh
+# vim in a Xterm
+
+# colors
+BG=black
+FG=white
+
+# font
+#+ see with $ find /usr/X11R6/lib/X11/fonts -name fonts.alias -exec cat {} \;|sort
+FONT=9x15
+TITLE="vim $1"
+BIN="vim $1"
+
+if [ $# -ne 1 ]; then
+	echo "Usage: $(basename $0) <file>"
+	exit 1
+fi
+
+
+# Rxvt
+#exec rxvt -fg $FG -bg $BG -fn $FONT -title "$TITLE" -name "$TITLE" -e $BIN &
+
+# Eterm
+#exec Eterm -T "$TITLE" -F $FONT --font-fx none --viewport-mode -P ~/perso/maeli/maeli-lapin.jpg  --shade 80 -n "$TITLE" -e $BIN &
+
+# xterm
+exec xterm -fg $FG -bg $BG -fn $FONT -title "$TITLE" -name "$TITLE" -lc -e $BIN &
