@@ -107,12 +107,12 @@ then
         (( i++ ))
     done
 
-    test -f "$IMAGEFINALE" && do_err "no Filename '$TEMPLATE-<n> (n=[1,100])' available; change de template (-o)"
+    test -f "$IMAGEFINALE" && do_err "no Filename '$TEMPLATE-<n> (n=[1,100])' available; change de template (-t)"
 else
     test $# -lt 2 && do_err_usage Missing argument: need 2 more
     IMAGEFINALE="$1"
     shift
-    test $# -gt 4 && { do_warn "Il y a plus de 4 fichiers source. Utiliser l'option -o pour definir un <template>"; exit; }
+    test $# -gt 4 && { do_warn "Il y a plus de 4 fichiers source. Utiliser l'option -t pour definir un <template>"; exit; }
 fi
 
 IMAGE1=$1
@@ -128,7 +128,7 @@ shift
 
 do_print Processing with $IMAGE1 $IMAGE2 $IMAGE3 $IMAGE4 to $IMAGEFINALE
 #touch $IMAGEFINALE
-#test $# -gt 0 && exec $0 -o $TEMPLATE $*
+#test $# -gt 0 && exec $0 -t $TEMPLATE $*
 #exit
 
 TEMP1=$(tempfile)
