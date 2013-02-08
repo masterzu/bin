@@ -83,6 +83,7 @@ DIR=${1}
 test -d "$1" || do_err "Directory: \`$DIR' dont exists"
 
 cd "$1" && DIR=$(pwd) || do_err "Cant cd to \`$DIR'"
+echo "looking at $DIR ..."
 
 inotifywait -m -e MODIFY "$DIR" | while read line; do
     cur_dir=$(echo $line | awk '{print $1}')
@@ -92,9 +93,9 @@ inotifywait -m -e MODIFY "$DIR" | while read line; do
 
     if echo $cur_file| egrep -q '.rst$'
     then
-        file_html=${cur_file%.rst}.html
+        file_html="${cur_file%.rst}.html"
         echo "[$(date)] file $file_html must be rebuilded"
-        make $file_html
+        make "$file_html"
     fi
     done
 
