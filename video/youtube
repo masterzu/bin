@@ -1,35 +1,50 @@
 #!/bin/bash
 # 
 # video converter for youtube
- 
+
+# encodage type
+# http://support.google.com/youtube/bin/static.py?hl=fr&topic=1728588&guide=1728585&page=guide.cs
+#
+# Type   Resolution Video (kbits) Audio mono (kbits) 
+# 1080p  1920x1080  8000          128
+# 720p   1280x720   5000          128
+# 480p   854x480    2500          64
+
 usage() {
     test -n "$1" && echo "Error: $1"
     cat <<- EOT
-Usage: $(basename $0) FILEIN FILEOUT
-Convert any? video FILEIN to FILEOUT.avi
+Usage: $(basename $0) FILEIN [ FILEOUT ]
+Convert any? video FILEIN to FILEOUT.avi with mencoder
+
+If FILEOUT omit, then deifne to FILEIN_youtube_<width>.avi
+with <width> = 1080 by default
+
 EOT
     exit
 }
 
-test $# == 0 && usage
-test $# != 2 && usage "Bad number arguments"
+test $# == 1 -o $# == 2 || usage "Bad number arguments"
 
 filein="$1"
-fileout="${2%.*}"
+fileoutbase="${2:-${1%.*}}"
 
 test -f $filein || usage "FILEIN must exists: abort"
 
 rencode() {
 # rencode in $1 width
-    local f="${fileout}_$1.avi"
+    local width=$1
+    local vbps=$2
+    local abps=${3:-0}
+    test -z "$1" -a -z "" && return
+    local f="${fileoutbase}_youtube_${1}p.avi"
     test -f "$f" && { echo "file $f already exists!"; exit; }
-    mencoder -quiet -ovc xvid -oac mp3lame -xvidencopts bitrate=2400 -vf scale=$1:-2 -o "${f}" $filein
+    echo "Encoding in $1 height ..."
+    #mencoder -quiet -ovc xvid -oac mp3lame -xvidencopts bitrate=$vbps -vf scale=-3:$1 -o "${f}" $filein
+    mencoder -quiet -ovc xvid -xvidencopts bitrate=$vbps -vf scale=-3:$1 -o "${f}" $filein
 }
 
-rencode 720
-rencode 1080
-
-
+#rencode 720
+rencode 1080 8000
 
 # vim:set ts=4 sw=4 sta ai nospell:
 
