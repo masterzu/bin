@@ -35,8 +35,15 @@ fi
 printer=$1
 shift
 
+for i in $*; do echo "\$* |$i|"; done
+for i in "$*"; do echo "\"\$*\" |$i|"; done
+for i in $@; do echo "\$@ |$i|"; done
+for i in "$@"; do echo "\"\$@\" |$i|"; done
+
+
+
 OPTIONS="-o sides=one-sided -o media=a4 -o fit-to-page"
 echo lp -d $printer $OPTIONS $@
-lp -d $printer $OPTIONS $@
+lp -d $printer $OPTIONS "$@"
 
 

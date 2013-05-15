@@ -4,4 +4,4 @@ then
     exit
 fi
 
-print_image $@ -o orientation-requested=3 
+print_image "$@" -o orientation-requested=3 
