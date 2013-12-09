@@ -4,15 +4,17 @@
  
 # Patrick CAO HUU THIEN <patrick.cao_huu_thien@upmc.fr>
 # 
-readonly VERSION=1
+readonly VERSION=2
 # History
 # * 15 May 2013 - 1
 # - initial version
+# * Dec  9 2013 - 2
+# - add list all uptime recorded
  
 
 function usage() {
 cat <<EOT
-Usage: $(basename $0) [ -q ]
+Usage: $(basename $0) [ -q -l ] 
 
 crontab script to save best uptime in $HOME/.uptime-<date>
 
@@ -20,6 +22,7 @@ print new record in human readable format
 
 options:
     -q : no output
+    -l : list all uptime recorded
 
 EOT
 }
@@ -61,9 +64,10 @@ function do_trap_exit() { echo "exit prout"; }
 ## Arguments ##############################################
 
 OPTIND=1
-while getopts hnvVdq opt ; do
+while getopts hnvVdql opt ; do
    case "$opt" in
         p) PROUT="$OPTARG";;
+        l) LISTING=1;;
 
         h) usage; exit;;
         v) VERBOSE=1;;
@@ -87,9 +91,18 @@ TD=$HOME/bin/td.sh
 
 test -f $TD || { echo "E: Cant find $TD. Try https://github.com/livibetter/td.sh/blob/master/td.sh"; exit 1; }
 
+test -n "$LISTING" && {
+    for f in ${FILEBASE}-*
+    do
+        filedate=${f##*.uptime-}
+        do_debug file $f  of date $filedate
+        echo "$filedate: $($TD $(cat $f))"
+    done
+    exit 0
+}
+
 current_uptime=$(cat /proc/uptime|awk '{print $1}'|awk -F. '{print $1}' || { echo "E: Cant use /proc/uptime!!"; exit 1; } )
 old_uptime=$(cat $FILEBASE 2>/dev/null|| echo 0)
-
 
 (( $current_uptime >= $old_uptime )) && {
     do_print "New uptime record :) $($TD $(echo $current_uptime)) "
@@ -98,12 +111,7 @@ old_uptime=$(cat $FILEBASE 2>/dev/null|| echo 0)
     do_print "reboot ;( Reset uptime records."
     old_uptime_date=$(stat -c %y $FILEBASE|awk '{print $1}' 2>/dev/null || date +%Y-%m-%d)
     mv $FILEBASE "$FILEBASE-$old_uptime_date"
-    
-
 }
-
-
-
 
 # vim:set ts=4 sw=4 sta ai spelllang=en:
 
