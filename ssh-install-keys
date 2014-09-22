@@ -1,0 +1,112 @@
+#! /bin/bash
+# install keys to access root@serveur
+#
+#
+VERSION=1
+# *  Mon Sep 22 2014 : Version 1
+# - initial version: scan, list
+
+usage() {
+    cat <<EOT
+Usage: $(basename $0) -LFDMAG [ -l ] <pub key> [ <pub key> ]*
+    -L : servers on network 134.157.34
+    -F : servers on network 134.157.43
+    -D : servers on network 134.157.69
+    -M : servers on network 134.157.76
+    -A : all servers
+    -G : all gateway
+
+    -l : only list the network
+EOT
+}
+
+### arguments
+# default hosts
+hosts=
+
+OPTIND=1
+while getopts hlLMFAGD opt ; do
+   case "$opt" in
+        h) print_help=1;;
+        l) do_list=1;;
+        L) hosts=LMM;;
+        F) hosts=FRT;;
+        D) hosts=DALEMBERT;;
+        M) hosts=MISES;;
+        A) hosts=ALL;;
+        G) hosts=GATEWAYS;;
+   esac
+done
+shift $(($OPTIND - 1))
+
+# option -h
+test $print_help && usage && exit 0
+
+HOSTS_GATEWAYS="chagall bipbip"
+HOSTS_LMM="bipbip chagall modemeca euler poisson"
+HOSTS_DALEMBERT="neptune heywood heyward selkirk manet antigna gaugin"
+HOSTS_MISES="olympe"
+HOSTS_FRT="cerbere lynx6 lynx7 lytras"
+HOSTS_ALL="$HOSTS_LMM $HOSTS_DALEMBERT $HOSTS_MISES $HOSTS_FRT"
+
+case "$hosts" in
+    GATEWAYS|LMM|DALEMBERT|MISES|FRT|ALL|GATEWAYS) hh=HOSTS_${hosts}; eval HOSTS=\$$hh;;
+    *) echo "E: you must give target hosts"; usage; exit 1;;
+esac
+
+if test $do_list; then
+    echo "$HOSTS"
+    exit 0
+fi
+
+# check args
+test $# -ge 1 || { echo "E: Missing parameters"; usage; exit 1; }
+
+# check files
+FILES=""
+for f in $@
+do
+    test -f "$f" && FILES="$FILES $f"
+done
+
+test -n "$FILES" || { echo "W: missing or non-exists files."; exit 1; }
+
+REAL_HOSTS=""
+ERROR_HOSTS=""
+echo "* Checking servers ..."
+for h in $HOSTS
+do
+    timeout 10 ssh root@$h "(uname -r >/dev/null 2>&1)" 2>/dev/null && REAL_HOSTS="$REAL_HOSTS $h" || { echo "server $h unreachable !"; ERROR_HOSTS="$ERROR_HOSTS $h"; continue; }
+done
+
+echo
+echo "* Working with servers: $REAL_HOSTS"
+echo "servers unreachable: $ERROR_HOSTS"
+echo
+
+for h in $REAL_HOSTS; do
+    echo -n "* copying files to $h: "
+    for f in $FILES; do
+        test -f "$f" && echo -n "$f " || continue
+        hash=$(cat $f | awk '{print $2}')
+        # test if hash in remote authorized_keys
+        ssh root@$h cat .ssh/authorized_keys 2>/dev/null | grep -q "$hash"
+        test $? -eq 0 && {
+            echo -n "[exists] " 
+        } || { 
+            cat "$f" | ssh root@$h "cat - >> .ssh/authorized_keys"
+
+            # tmp=$(ssh root@$h mktemp)
+            # scp -q "$f" root@$h:$tmp || { echo -n "[scp error, skip] "; continue; }
+            # # echo "cat $tmp >> .ssh/authorized_keys"
+            # ssh root@$h "(cat $tmp >> .ssh/authorized_keys)"
+
+            #re test
+            ssh root@$h cat .ssh/authorized_keys | grep -q "$hash"
+            test $? -eq 0 && echo -n "[ok] " || echo -n "[failed] "
+        }
+    done
+    echo "DONE"
+done
+
+
